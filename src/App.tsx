@@ -70,7 +70,7 @@ const App = () => {
   }, [webcamRef]);
 
   // Convert file to Base64
-  const convertToBase64 = (file: unknown) => {
+  const convertToBase64 = (file: Blob) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
