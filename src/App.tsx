@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { blobToBase64 } from "./lib";
+import { Camera } from "react-camera-pro";
 import axios from "axios";
 
 const App = () => {
-  const [image, setImage] = useState(null); // To store the uploaded or captured image
+  const camera = useRef(null);
+  const [image, setImage] = useState(undefined); // To store the uploaded or captured image
   const [base64Image, setBase64Image] = useState(""); // To store base64 representation
   const [predictionResult, setPredictionResult] = useState(null);
   const [loading, setLoading] = useState(false); // Add loading state
@@ -61,11 +63,22 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      <img src="/logo.png" className="max-h-64" alt="โลโก้สำนักทันตะ" />
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-gray-100 p-4 body">
+      <img src="/logo.png" className="max-h-32" alt="โลโก้สำนักทันตะ" />
       <h1 className="text-2xl font-bold mb-4">ตรวจจับคราบ Plaque ด้วย AI</h1>
 
       <div className="w-full max-w-md bg-white p-4 rounded-lg shadow-lg">
+        {/* Camera Capture */}
+        <label className="block mb-2 text-sm font-medium text-gray-700">
+          ถ่ายภาพจากกล้อง
+        </label>
+        <div>
+          <Camera facingMode="user" ref={camera} />
+          <button onClick={() => setImage(camera.current.takePhoto())}>
+            ถ่ายรูป
+          </button>
+        </div>
+
         {/* Image Upload */}
         <label className="block mb-2 text-sm font-medium text-gray-700">
           อัปโหลดรูปฟัน
@@ -75,18 +88,6 @@ const App = () => {
           accept="image/*"
           className="block w-full text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer focus:outline-none mb-4"
           onChange={handleFileChange}
-        />
-
-        {/* Camera Capture */}
-        <label className="block mb-2 text-sm font-medium text-gray-700">
-          ถ่ายภาพจากกล้อง
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="block w-full text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-lg cursor-pointer focus:outline-none mb-4"
-          onChange={handleCapture}
         />
 
         {/* Display Uploaded or Captured Image */}
@@ -113,10 +114,9 @@ const App = () => {
           onClick={handleSubmit}
           disabled={loading}
         >
-          {loading ? "กำลังประมวลผล..." : "Submit for Prediction"}
+          {loading ? "กำลังประมวลผล..." : "Predict"}
         </button>
       </div>
-
     </div>
   );
 };
