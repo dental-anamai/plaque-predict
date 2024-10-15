@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { blobToBase64 } from "./lib";
 import axios from "axios";
 import Webcam from "react-webcam";
@@ -10,14 +10,23 @@ const videoConstraints = {
 };
 
 const App = () => {
-  const camera = useRef(null);
-  const [image, setImage] = useState(undefined); // To store the uploaded or captured image
-  const [base64Image, setBase64Image] = useState(""); // To store base64 representation
-  const [predictionResult, setPredictionResult] = useState(null);
+  const webcamRef = useRef(null);
+  const [image, setImage] = useState<string>(""); // To store the uploaded or captured image
+  const [base64Image, setBase64Image] = useState<string | ArrayBuffer | null>(
+    ""
+  ); // To store base64 representation
+  const [predictionResult, setPredictionResult] = useState<string>("");
   const [loading, setLoading] = useState(false); // Add loading state
 
+  const capture = useCallback(() => {
+    // @ts-expect-error maybe null
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImage(imageSrc);
+    convertToBase64(imageSrc);
+  }, [webcamRef]);
+
   // Convert file to Base64
-  const convertToBase64 = (file) => {
+  const convertToBase64 = (file: Blob) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
@@ -26,14 +35,8 @@ const App = () => {
   };
 
   // Handle file upload
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setImage(URL.createObjectURL(file));
-    convertToBase64(file);
-  };
-
-  // Handle image capture via camera
-  const handleCapture = (e) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // @ts-expect-error maybe null
     const file = e.target.files[0];
     setImage(URL.createObjectURL(file));
     convertToBase64(file);
@@ -66,10 +69,6 @@ const App = () => {
         console.log(error.message);
         setLoading(false);
       });
-
-    useEffect(() => {
-      console.log(camera);
-    }, [camera]);
   };
 
   return (
@@ -88,20 +87,15 @@ const App = () => {
             height={720}
             screenshotFormat="image/jpeg"
             width={1280}
+            ref={webcamRef}
             videoConstraints={videoConstraints}
+          />
+          <button
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+            onClick={capture}
           >
-            {({ getScreenshot }) => (
-              <button
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
-                onClick={() => {
-                  const imageSrc = getScreenshot();
-                  setImage(imageSrc);
-                }}
-              >
-                ถ่ายรูป
-              </button>
-            )}
-          </Webcam>
+            ถ่ายรูป
+          </button>
         </div>
 
         {/* Image Upload */}
