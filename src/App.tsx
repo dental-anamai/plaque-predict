@@ -9,6 +9,42 @@ const videoConstraints = {
   facingMode: "user",
 };
 
+const Modal = ({ isOpen, onClose, predictionResult }: any) => {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+      {/* Modal */}
+      <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full relative">
+          <button
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            onClick={onClose}
+          >
+            ✕
+          </button>
+          <h2 className="text-2xl font-bold mb-4">ผลการทำนายคราบ Plaque</h2>
+          <div className="flex justify-center">
+            <img
+              src={predictionResult}
+              alt="Prediction Result"
+              className="w-full h-auto rounded-lg shadow-md"
+            />
+          </div>
+          <button
+            className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+            onClick={onClose}
+          >
+            ปิด
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
 const App = () => {
   const webcamRef = useRef(null);
   const [image, setImage] = useState<string>(""); // To store the uploaded or captured image
@@ -17,9 +53,16 @@ const App = () => {
   ); // To store base64 representation
   const [predictionResult, setPredictionResult] = useState<string>("");
   const [loading, setLoading] = useState(false); // Add loading state
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [isFlashVisible, setIsFlashVisible] = useState(false); // Flash animation state
 
   const capture = useCallback(() => {
     setPredictionResult("");
+
+    // Trigger flash animation
+    setIsFlashVisible(true);
+    setTimeout(() => setIsFlashVisible(false), 300); // Hide flash after 300ms
+
     // @ts-expect-error maybe null
     const imageSrc = webcamRef.current.getScreenshot();
     setImage(imageSrc);
@@ -66,6 +109,7 @@ const App = () => {
 
         setPredictionResult(Resbase64Image);
         setLoading(false); // Hide loading spinner
+        setIsModalOpen(true); // Open modal when prediction is ready
       })
       .catch(function (error) {
         console.log(error.message);
@@ -74,7 +118,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center bg-gray-100 p-4 body">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-gray-100 p-4 body relative">
       <img src="./logo.png" className="max-h-32" alt="โลโก้สำนักทันตะ" />
       <h1 className="text-2xl font-bold mb-4">ตรวจจับคราบ Plaque ด้วย AI</h1>
 
@@ -100,6 +144,11 @@ const App = () => {
           </button>
         </div>
 
+        {/* Flash animation */}
+        {isFlashVisible && (
+          <div className="absolute inset-0 bg-white opacity-75 z-30 animate-flash"></div>
+        )}
+
         {/* Image Upload */}
         <label className="block mb-2 text-sm font-medium text-gray-700">
           อัปโหลดรูปฟัน
@@ -115,8 +164,8 @@ const App = () => {
         {image && (
           <div className="relative mb-4">
             <img
-              src={predictionResult || image}
-              alt="Selected or Prediction"
+              src={image}
+              alt="Selected"
               className="w-full h-auto rounded-lg shadow-md"
             />
             {loading && (
@@ -138,6 +187,13 @@ const App = () => {
           {loading ? "กำลังประมวลผล..." : "Predict"}
         </button>
       </div>
+
+      {/* Prediction Result Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        predictionResult={predictionResult}
+      />
     </div>
   );
 };
