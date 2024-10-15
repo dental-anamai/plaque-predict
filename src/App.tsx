@@ -19,6 +19,7 @@ const App = () => {
   const [loading, setLoading] = useState(false); // Add loading state
 
   const capture = useCallback(() => {
+    setPredictionResult("");
     // @ts-expect-error maybe null
     const imageSrc = webcamRef.current.getScreenshot();
     setImage(imageSrc);
@@ -36,6 +37,7 @@ const App = () => {
 
   // Handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPredictionResult("");
     // @ts-expect-error maybe null
     const file = e.target.files[0];
     setImage(URL.createObjectURL(file));
@@ -73,7 +75,7 @@ const App = () => {
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center bg-gray-100 p-4 body">
-      <img src="/logo.png" className="max-h-32" alt="โลโก้สำนักทันตะ" />
+      <img src="./logo.png" className="max-h-32" alt="โลโก้สำนักทันตะ" />
       <h1 className="text-2xl font-bold mb-4">ตรวจจับคราบ Plaque ด้วย AI</h1>
 
       <div className="w-full max-w-md bg-white p-4 rounded-lg shadow-lg">
