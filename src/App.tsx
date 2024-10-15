@@ -1,7 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { blobToBase64 } from "./lib";
-import { Camera } from "react-camera-pro";
 import axios from "axios";
+import Webcam from "react-webcam";
+
+const videoConstraints = {
+  width: 1280,
+  height: 720,
+  facingMode: "user",
+};
 
 const App = () => {
   const camera = useRef(null);
@@ -60,6 +66,10 @@ const App = () => {
         console.log(error.message);
         setLoading(false);
       });
+
+    useEffect(() => {
+      console.log(camera);
+    }, [camera]);
   };
 
   return (
@@ -73,10 +83,25 @@ const App = () => {
           ถ่ายภาพจากกล้อง
         </label>
         <div>
-          <Camera facingMode="user" ref={camera} />
-          <button onClick={() => setImage(camera.current.takePhoto())}>
-            ถ่ายรูป
-          </button>
+          <Webcam
+            audio={false}
+            height={720}
+            screenshotFormat="image/jpeg"
+            width={1280}
+            videoConstraints={videoConstraints}
+          >
+            {({ getScreenshot }) => (
+              <button
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+                onClick={() => {
+                  const imageSrc = getScreenshot();
+                  setImage(imageSrc);
+                }}
+              >
+                ถ่ายรูป
+              </button>
+            )}
+          </Webcam>
         </div>
 
         {/* Image Upload */}
