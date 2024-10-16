@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { blobToBase64 } from "./lib";
 import axios from "axios";
 import Webcam from "react-webcam";
@@ -9,7 +9,7 @@ const videoConstraints = {
   facingMode: "user",
 };
 
-const Modal = ({ isOpen, onClose, predictionResult }: any) => {
+const Modal = ({ isOpen, onClose, predictionResult, message }: any) => {
   if (!isOpen) return null;
 
   return (
@@ -25,14 +25,24 @@ const Modal = ({ isOpen, onClose, predictionResult }: any) => {
           >
             ✕
           </button>
-          <h2 className="text-2xl font-bold mb-4">ผลการทำนายคราบ Plaque</h2>
-          <div className="flex justify-center">
-            <img
-              src={predictionResult}
-              alt="Prediction Result"
-              className="w-full h-auto rounded-lg shadow-md"
-            />
-          </div>
+          {message && (
+            <>
+              <h2 className="text-2xl font-bold mb-4">Information</h2>
+              <p>{message}</p>
+            </>
+          )}
+          {predictionResult && (
+            <>
+              <h2 className="text-2xl font-bold mb-4">ผลการทำนายคราบ Plaque</h2>
+              <div className="flex justify-center">
+                <img
+                  src={predictionResult}
+                  alt="Prediction Result"
+                  className="w-full h-auto rounded-lg shadow-md"
+                />
+              </div>
+            </>
+          )}
           <button
             className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
             onClick={onClose}
@@ -55,6 +65,51 @@ const App = () => {
   const [loading, setLoading] = useState(false); // Add loading state
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [isFlashVisible, setIsFlashVisible] = useState(false); // Flash animation state
+  const [modalMessage, setModalMessage] = useState(""); // Modal message
+
+  // Check camera availability and WebView
+  const checkCameraPermission = useCallback(async () => {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const hasCamera = devices.some((device) => device.kind === "videoinput");
+
+      // If no camera is found, show modal
+      if (!hasCamera) {
+        setModalMessage(
+          "ไม่พบกล้องในอุปกรณ์ของคุณ กรุณาเปิดแอปในเบราว์เซอร์ที่รองรับเพื่อใช้ฟังก์ชันกล้อง"
+        );
+        setIsModalOpen(true);
+      } else {
+        // Check for camera permissions
+        await navigator.mediaDevices.getUserMedia({ video: true });
+      }
+    } catch (error) {
+      // Show modal if permission denied or camera is not accessible
+      setModalMessage(
+        "แอปนี้ต้องการการเข้าถึงกล้อง กรุณาอนุญาตการเข้าถึง หรือเปิดแอปนี้ในเบราว์เซอร์เพื่อประสบการณ์ที่ดีที่สุด"
+      );
+      setIsModalOpen(true);
+    }
+  }, []);
+
+  const detectWebView = () => {
+    const userAgent = navigator.userAgent;
+    if (
+      /FBAN|FBAV|Instagram|Line|Twitter|Snapchat/.test(userAgent) ||
+      /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(userAgent) ||
+      /\bwv\b/.test(userAgent)
+    ) {
+      setModalMessage(
+        "คุณกำลังเปิดแอปผ่าน WebView ซึ่งอาจไม่สามารถใช้งานกล้องได้เต็มประสิทธิภาพ กรุณาใช้เบราว์เซอร์เพื่อให้ฟังก์ชันการทำงานเต็มรูปแบบ"
+      );
+      setIsModalOpen(true);
+    }
+  };
+
+  useEffect(() => {
+    detectWebView();
+    checkCameraPermission();
+  }, [checkCameraPermission]);
 
   const capture = useCallback(() => {
     setPredictionResult("");
@@ -97,7 +152,7 @@ const App = () => {
         api_key: import.meta.env.VITE_ROBOFLOW_API_KEY,
         format: "image",
         confidence: 10,
-        stroke: 2
+        stroke: 2,
       },
       responseType: "blob",
       data: base64Image,
@@ -195,6 +250,7 @@ const App = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         predictionResult={predictionResult}
+        message={modalMessage}
       />
     </div>
   );
