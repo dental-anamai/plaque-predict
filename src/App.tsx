@@ -67,40 +67,16 @@ const App = () => {
   const [isFlashVisible, setIsFlashVisible] = useState(false); // Flash animation state
   const [modalMessage, setModalMessage] = useState(""); // Modal message
 
-  // Check camera availability and WebView
-  const checkCameraPermission = useCallback(async () => {
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const hasCamera = devices.some((device) => device.kind === "videoinput");
-
-      // If no camera is found, show modal
-      if (!hasCamera) {
-        setModalMessage(
-          "ไม่พบกล้องในอุปกรณ์ของคุณ กรุณาเปิดแอปในเบราว์เซอร์ที่รองรับเพื่อใช้ฟังก์ชันกล้อง"
-        );
-        setIsModalOpen(true);
-      } else {
-        // Check for camera permissions
-        await navigator.mediaDevices.getUserMedia({ video: true });
-      }
-    } catch (error) {
-      // Show modal if permission denied or camera is not accessible
-      setModalMessage(
-        "แอปนี้ต้องการการเข้าถึงกล้อง กรุณาอนุญาตการเข้าถึง หรือเปิดแอปนี้ในเบราว์เซอร์เพื่อประสบการณ์ที่ดีที่สุด"
-      );
-      setIsModalOpen(true);
-    }
-  }, []);
-
   const detectWebView = () => {
     const userAgent = navigator.userAgent;
+    console.log(userAgent)
     if (
       /FBAN|FBAV|Instagram|Line|Twitter|Snapchat/.test(userAgent) ||
       /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(userAgent) ||
       /\bwv\b/.test(userAgent)
     ) {
       setModalMessage(
-        "คุณกำลังเปิดแอปผ่าน WebView ซึ่งอาจไม่สามารถใช้งานกล้องได้เต็มประสิทธิภาพ กรุณาใช้เบราว์เซอร์เพื่อให้ฟังก์ชันการทำงานเต็มรูปแบบ"
+        "กรุณาใช้เบราว์เซอร์ เช่น Chorme Safari เพื่อใช้กล้อง"
       );
       setIsModalOpen(true);
     }
@@ -108,8 +84,7 @@ const App = () => {
 
   useEffect(() => {
     detectWebView();
-    checkCameraPermission();
-  }, [checkCameraPermission]);
+  }, []);
 
   const capture = useCallback(() => {
     setPredictionResult("");
