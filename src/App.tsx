@@ -96,6 +96,8 @@ const App = () => {
       params: {
         api_key: import.meta.env.VITE_ROBOFLOW_API_KEY,
         format: "image",
+        confidence: 10,
+        stroke: 2
       },
       responseType: "blob",
       data: base64Image,
