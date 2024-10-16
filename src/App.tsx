@@ -25,7 +25,7 @@ const Modal = ({ isOpen, onClose, predictionResult, message }: any) => {
           >
             ✕
           </button>
-          {message && (
+          {(message && !predictionResult) && (
             <>
               <h2 className="text-2xl font-bold mb-4">Information</h2>
               <p>{message}</p>
