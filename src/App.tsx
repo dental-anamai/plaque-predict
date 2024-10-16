@@ -96,7 +96,8 @@ const App = () => {
     // @ts-expect-error maybe null
     const imageSrc = webcamRef.current.getScreenshot();
     setImage(imageSrc);
-    convertToBase64(imageSrc);
+    
+    setBase64Image(imageSrc);
   }, [webcamRef]);
 
   // Convert file to Base64
