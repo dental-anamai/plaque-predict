@@ -2,11 +2,14 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { blobToBase64 } from "./lib";
 import axios from "axios";
 import Webcam from "react-webcam";
+import { GoSync, GoX } from "react-icons/go";
 
+const FACING_MODE_USER = "user";
+const FACING_MODE_ENVIRONMENT = "environment";
 const videoConstraints = {
   width: 1280,
   height: 720,
-  facingMode: "user",
+  facingMode: FACING_MODE_USER,
 };
 
 const Modal = ({ isOpen, onClose, predictionResult, message }: any) => {
@@ -23,9 +26,9 @@ const Modal = ({ isOpen, onClose, predictionResult, message }: any) => {
             className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
             onClick={onClose}
           >
-            ✕
+            <GoX />
           </button>
-          {(message && !predictionResult) && (
+          {message && !predictionResult && (
             <>
               <h2 className="text-2xl font-bold mb-4">Information</h2>
               <p>{message}</p>
@@ -56,6 +59,7 @@ const Modal = ({ isOpen, onClose, predictionResult, message }: any) => {
 };
 
 const App = () => {
+  const [facingMode, setFacingMode] = useState(FACING_MODE_USER);
   const webcamRef = useRef(null);
   const [image, setImage] = useState<string>(""); // To store the uploaded or captured image
   const [base64Image, setBase64Image] = useState<string | ArrayBuffer | null>(
@@ -69,15 +73,13 @@ const App = () => {
 
   const detectWebView = () => {
     const userAgent = navigator.userAgent;
-    console.log(userAgent)
+    console.log(userAgent);
     if (
       /FBAN|FBAV|Instagram|Line|Twitter|Snapchat/.test(userAgent) ||
       /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(userAgent) ||
       /\bwv\b/.test(userAgent)
     ) {
-      setModalMessage(
-        "กรุณาใช้เบราว์เซอร์ เช่น Chorme Safari เพื่อใช้กล้อง"
-      );
+      setModalMessage("กรุณาใช้เบราว์เซอร์ เช่น Chorme Safari เพื่อใช้กล้อง");
       setIsModalOpen(true);
     }
   };
@@ -95,8 +97,9 @@ const App = () => {
 
     // @ts-expect-error maybe null
     const imageSrc = webcamRef.current.getScreenshot();
+
     setImage(imageSrc);
-    
+
     setBase64Image(imageSrc);
   }, [webcamRef]);
 
@@ -149,6 +152,15 @@ const App = () => {
         setLoading(false);
       });
   };
+  
+  // Switch camera between front and back
+  const handleSwitchCamera = () => {
+    setFacingMode((prevFacingMode) =>
+      prevFacingMode === FACING_MODE_USER
+        ? FACING_MODE_ENVIRONMENT
+        : FACING_MODE_USER
+    );
+  };
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center bg-gray-100 p-4 body relative">
@@ -169,6 +181,13 @@ const App = () => {
             ref={webcamRef}
             videoConstraints={videoConstraints}
           />
+          <button
+            className="absolute bottom-2 right-2 bg-gray-800 text-white rounded-full p-2 hover:bg-gray-700"
+            onClick={handleSwitchCamera}
+            aria-label="Switch Camera"
+          >
+            <GoSync />
+          </button>
           <button
             className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
             onClick={capture}
