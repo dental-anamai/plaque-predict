@@ -179,17 +179,22 @@ const App = () => {
             screenshotFormat="image/jpeg"
             width={1280}
             ref={webcamRef}
-            videoConstraints={videoConstraints}
+            videoConstraints={{ ...videoConstraints, facingMode }}
           />
+        </div>
+
+        {/* Buttons: Switch Camera and Capture */}
+        <div className="flex mt-4 space-x-2">
           <button
-            className="absolute bottom-2 right-2 bg-gray-800 text-white rounded-full p-2 hover:bg-gray-700"
+            className="flex-1 bg-gray-800 text-white rounded-lg p-2 hover:bg-gray-700"
             onClick={handleSwitchCamera}
             aria-label="Switch Camera"
           >
-            <GoSync />
+            <GoSync className="inline-block mr-2" />
+            สลับกล้อง
           </button>
           <button
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
             onClick={capture}
           >
             ถ่ายรูป
@@ -202,7 +207,7 @@ const App = () => {
         )}
 
         {/* Image Upload */}
-        <label className="block mb-2 text-sm font-medium text-gray-700">
+        <label className="block mt-4 mb-2 text-sm font-medium text-gray-700">
           อัปโหลดรูปฟัน
         </label>
         <input
